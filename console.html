@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识库工作台</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Microsoft YaHei",sans-serif;background:#f5f6f8;padding:16px 12px;color:#222}
+.wrap{max-width:820px;margin:0 auto}
+.tabs{display:flex;gap:6px;background:#fff;border-radius:12px;padding:6px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:16px;position:sticky;top:8px;z-index:30}
+.tab{flex:1;text-align:center;padding:11px 8px;border-radius:9px;font-size:14px;font-weight:600;color:#666;cursor:pointer;position:relative;white-space:nowrap}
+.tab.active{background:#1677ff;color:#fff}
+.tab .badge{background:#e5484d;color:#fff;font-size:11px;border-radius:20px;padding:0 6px;margin-left:4px;display:none}
+.tab .badge.show{display:inline-block}
+.tab.active .badge{background:#fff;color:#e5484d}
+.page{display:none}
+.page.active{display:block}
+.card{background:#fff;border-radius:14px;box-shadow:0 2px 18px rgba(0,0,0,.08);padding:24px 20px}
+h3{margin-bottom:4px}
+.sub{color:#999;font-size:13px;margin-bottom:18px}
+.g{margin-bottom:16px}
+label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+label .req{color:#ff4d4f;margin-left:3px}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid #dcdfe6;border-radius:9px;font-size:14px;font-family:inherit;background:#fff}
+textarea{min-height:90px;resize:vertical}
+select:focus,input:focus,textarea:focus{outline:none;border-color:#1677ff;box-shadow:0 0 0 3px rgba(22,119,255,.12)}
+.hint{font-size:12px;color:#aaa;margin-top:5px;line-height:1.6}
+.btn{width:100%;margin-top:8px;padding:12px;border:0;border-radius:9px;background:#1677ff;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+.btn:disabled{background:#a9c9ff;cursor:not-allowed}
+.btn.sm{width:auto;padding:9px 16px;margin-top:0;font-size:14px}
+.btn.gray{background:#6b7280}
+.msg{margin-top:14px;font-size:14px;text-align:center;line-height:1.7;display:none}
+.msg.ok{color:#12a150}.msg.err{color:#e5484d}
+.idbox{margin-top:12px;background:#f0fff4;border:1px solid #b7ebc6;border-radius:9px;padding:12px;font-size:14px;text-align:center;display:none}
+.idbox b{font-size:16px;color:#12a150;letter-spacing:1px}
+.chapterwrap{position:relative}
+.dropdown{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #dcdfe6;border-top:0;border-radius:0 0 9px 9px;max-height:230px;overflow:auto;z-index:20;display:none}
+.dropdown div{padding:9px 12px;font-size:14px;cursor:pointer;border-bottom:1px solid #f2f2f2}
+.dropdown div:hover{background:#f0f6ff}
+.item{border:1px solid #eee;border-radius:10px;padding:14px 14px 4px;margin-bottom:14px;position:relative;background:#fafbfc}
+.item .idx{position:absolute;top:10px;right:12px;font-size:12px;color:#bbb}
+.item .del{position:absolute;top:8px;right:12px;color:#e5484d;font-size:13px;cursor:pointer;display:none}
+.item:hover .del{display:inline}.item:hover .idx{display:none}
+.addbtn{width:100%;padding:10px;border:1px dashed #1677ff;border-radius:9px;background:#f5f9ff;color:#1677ff;font-size:14px;cursor:pointer;margin-bottom:16px}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.bar input,.bar select{flex:0 0 auto;width:auto}
+.bar .grow{flex:1;min-width:140px}
+.empty{text-align:center;color:#999;padding:36px 0}
+.gmsg{text-align:center;font-size:14px;margin:10px 0;display:none}
+.gmsg.ok{color:#12a150}.gmsg.err{color:#e5484d}
+.badge2{display:inline-block;padding:4px 14px;border-radius:20px;color:#fff;font-size:14px;font-weight:600}
+.badge2.pending{background:#d97706}.badge2.passed{background:#12a150}.badge2.rejected{background:#e5484d}
+.row{font-size:14px;margin:6px 0;line-height:1.7}
+.row b{color:#555;display:inline-block;min-width:64px}
+.chg{border:1px solid #eee;border-radius:9px;padding:10px 12px;margin:8px 0}
+.chg .h{font-size:13px;font-weight:600;margin-bottom:6px}
+.tag{display:inline-block;padding:1px 8px;border-radius:20px;font-size:12px;color:#fff;margin-left:6px}
+.tag.add{background:#12a150}.tag.replace{background:#1677ff}.tag.delete{background:#e5484d}
+.diff .old,.diff .new{padding:7px 10px;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-all;border-radius:6px}
+.diff .old{background:#fff5f5;color:#8a1f1f;margin-bottom:4px}
+.diff .new{background:#f2fff6;color:#155e2e}
+.acts{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.acts input{flex:1;min-width:160px}
+.pass,.reject{padding:9px 18px;border:0;border-radius:9px;color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+.pass{background:#12a150}.reject{background:#e5484d}
+.rec{background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;margin-bottom:14px}
+.rec .head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.res{padding:2px 10px;border-radius:20px;font-size:13px;color:#fff}
+.res.passed{background:#12a150}.res.rejected{background:#e5484d}
+.stats{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.stat{flex:1;min-width:90px;background:#fff;border:1px solid #eee;border-radius:12px;padding:12px;text-align:center}
+.stat .n{font-size:22px;font-weight:700}.stat .l{font-size:12px;color:#888}
+.stat.all .n{color:#1677ff}.stat.pass .n{color:#12a150}.stat.reject .n{color:#e5484d}
+.stat.today .n{color:#7c3aed}
+.lock{text-align:center;padding:30px 10px}
+.lock input{max-width:280px;margin:12px auto}
+.muted{color:#999;font-size:12px}
+.chart{width:100%;overflow-x:auto;margin-bottom:12px}
+svg text{font-size:11px;fill:#888}
+.bars .bar2{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px}
+.bars .lbl{width:96px;text-align:right;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .track{flex:1;background:#eef0f3;border-radius:6px;height:16px}
+.bars .fill{height:100%;border-radius:6px;background:#1677ff}
+.bars .val{width:30px;font-weight:600}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="tabs">
+    <div class="tab active" data-tab="submit">提交申请</div>
+    <div class="tab" data-tab="query">进度查询</div>
+  </div>
+
+  <!-- 提交申请 -->
+  <div class="page active" id="page-submit">
+    <div class="card">
+      <h3>知识库修改申请</h3>
+      <div class="sub">填写后提交，等待管理员审核。可一次提交多项修改。请勿填写个人隐私信息。</div>
+      <div class="g"><label>提交人<span class="req">*</span></label>
+        <input id="applicant" placeholder="填写你的姓名/工号，便于审核识别"></div>
+      <div class="g chapterwrap"><label>章节<span class="req">*</span></label>
+        <input id="chapterSearch" placeholder="输入编号或关键词搜索，如 2.4.1 或 退款" autocomplete="off">
+        <input type="hidden" id="module">
+        <div class="dropdown" id="dropdown"></div>
+        <div class="hint" id="chapterHint">正在加载章节列表…</div></div>
+      <label style="margin-bottom:8px">修改项<span class="req">*</span></label>
+      <div id="items"></div>
+      <button class="addbtn" id="addItem" type="button">+ 添加一项修改</button>
+      <button class="btn" id="submitBtn">提交申请</button>
+      <div class="msg" id="msg"></div>
+      <div class="idbox" id="idbox"></div>
+    </div>
+  </div>
+
+  <!-- 进度查询 -->
+  <div class="page" id="page-query">
+    <div class="card">
+      <h3>申请进度查询</h3>
+      <div class="sub">输入提交后获得的申请编号，查询审核进度</div>
+      <div class="bar">
+        <input class="grow" id="reqId" placeholder="申请编号，如 20260703-13655299" autocomplete="off">
+        <button class="btn sm" id="qbtn">查询</button>
+      </div>
+      <div class="gmsg" id="qmsg"></div>
+      <div id="qresult"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var API = "https://1447704904-fkpw4as6i9.ap-guangzhou.tencentscf.com";
+var AUTH_KEY = "mySecretAuthKey2024";
+var CHAPTERS_URL = "https://kb-docs-1234567890-1447704904.cos.ap-guangzhou.myqcloud.com/chapters.json";
+var $ = function(id){return document.getElementById(id);};
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function flash(el, t, ok){ el.className="gmsg "+(ok?"ok":"err"); el.textContent=t; el.style.display="block"; setTimeout(function(){el.style.display="none";},4000); }
+function pad(n){ return n<10?("0"+n):(""+n); }
+function fmtDate(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function post(payload){ return fetch(API,{method:"POST",headers:{"Content-Type":"application/json; charset=utf-8"},body:JSON.stringify(payload)}).then(function(r){return r.json();}); }
+// ---- Tab 切换 ----
+Array.prototype.forEach.call(document.querySelectorAll(".tab"),function(t){
+  t.onclick=function(){
+    var name=t.getAttribute("data-tab");
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"),function(x){x.classList.remove("active");});
+    Array.prototype.forEach.call(document.querySelectorAll(".page"),function(x){x.classList.remove("active");});
+    t.classList.add("active"); $("page-"+name).classList.add("active");
+  };
+});
+// ================= 提交申请 =================
+var chapters=[];
+fetch(CHAPTERS_URL+"?t="+Date.now()).then(function(r){return r.json();}).then(function(list){ chapters=list||[]; $("chapterHint").textContent="共 "+chapters.length+" 个章节，可搜索选择"; }).catch(function(){ $("chapterHint").textContent="章节列表加载失败，请检查 CHAPTERS_URL 配置"; });
+var search=$("chapterSearch"), dd=$("dropdown");
+function renderDropdown(kw){ kw=(kw||"").trim().toLowerCase(); var arr=chapters.filter(function(c){return !kw||(c.id+" "+c.title).toLowerCase().indexOf(kw)>=0;}).slice(0,300); dd.innerHTML=""; arr.forEach(function(c){ var d=document.createElement("div"); d.textContent=c.title; d.onclick=function(){ search.value=c.title; $("module").value=c.id; dd.style.display="none"; }; dd.appendChild(d); }); dd.style.display=arr.length?"block":"none"; }
+search.addEventListener("input",function(){ $("module").value=""; renderDropdown(search.value); });
+search.addEventListener("focus",function(){ renderDropdown(search.value); });
+document.addEventListener("click",function(e){ if(e.target!==search && !dd.contains(e.target)) dd.style.display="none"; });
+var FIELDS=["场景定义","处理流程","参考口径","备注","注意事项"];
+function itemTemplate(i){ var opts=FIELDS.map(function(f){return "<option value=\""+f+"\">"+f+"</option>";}).join(""); var div=document.createElement("div"); div.className="item";
+  div.innerHTML="<span class=\"idx\">#"+(i+1)+"</span><span class=\"del\" title=\"删除此项\">✕ 删除</span>"+
+    "<div class=\"g\"><label>字段</label><select class=\"fld\"><option value=\"\">请选择</option>"+opts+"</select></div>"+
+    "<div class=\"g\"><label>操作类型</label><select class=\"op\"><option value=\"add\">增加（在原内容后追加）</option><option value=\"replace\">修改（整体替换该字段内容）</option><option value=\"delete\">删除（删指定内容；留空则删整行）</option></select></div>"+
+    "<div class=\"g\"><label>内容</label><textarea class=\"content\" placeholder=\"富文本换行用 <br>，与知识库现有写法一致\"></textarea></div>";
+  div.querySelector(".del").onclick=function(){ div.remove(); renumber(); }; return div; }
+function renumber(){ var arr=document.querySelectorAll("#items .item .idx"); Array.prototype.forEach.call(arr,function(s,i){ s.textContent="#"+(i+1); }); }
+function addItem(){ $("items").appendChild(itemTemplate($("items").children.length)); }
+$("addItem").onclick=addItem; addItem();
+function submitShowErr(t){ var m=$("msg"); m.className="msg err"; m.textContent="❌ "+t; m.style.display="block"; }
+$("submitBtn").addEventListener("click",function(){
+  var applicant=$("applicant").value.trim(); var module=$("module").value.trim();
+  var msg=$("msg"); msg.style.display="none"; $("idbox").style.display="none";
+  if(!applicant){return submitShowErr("请填写提交人");}
+  if(!module){return submitShowErr("请从下拉列表中选择章节");}
+  var items=[]; var nodes=document.querySelectorAll("#items .item");
+  for(var i=0;i<nodes.length;i++){ var fld=nodes[i].querySelector(".fld").value; var op=nodes[i].querySelector(".op").value; var content=nodes[i].querySelector(".content").value.trim(); if(!fld) continue; if(!content && op!=="delete"){ return submitShowErr("第"+(i+1)+"项内容为空（该操作不能为空）"); } items.push({field:fld,op:op,content:content}); }
+  if(!items.length){ return submitShowErr("请至少填写一项有效修改"); }
+  var btn=$("submitBtn"); btn.disabled=true; btn.textContent="提交中…";
+  post({auth_key:AUTH_KEY,action:"submit",applicant:applicant,module:module,items:items}).then(function(res){
+    btn.disabled=false; btn.textContent="提交申请";
+    if(res.code===0){ msg.className="msg ok"; msg.textContent="✅ "+res.msg+"（共"+(res.count||items.length)+"项）"; msg.style.display="block";
+      var box=$("idbox"); box.innerHTML="申请编号：<b>"+res.id+"</b><br>请保存此编号，可到「进度查询」查看审核进度。"; box.style.display="block";
+      $("items").innerHTML=""; addItem(); }
+    else{ submitShowErr(res.msg||"提交失败"); }
+  }).catch(function(e){ btn.disabled=false; btn.textContent="提交申请"; submitShowErr("网络错误："+e); });
+});
+// ================= 进度查询 =================
+function qStatus(st){ if(st==="pending"||st==="待审核") return {cls:"pending",label:"待审核"}; if(st==="passed"||st==="已通过") return {cls:"passed",label:"已通过"}; if(st==="rejected"||st==="已驳回") return {cls:"rejected",label:"已驳回"}; return {cls:"pending",label:st||"未知"}; }
+function qItems(d){ var arr=d.items||[{field:d.field,op:d.op,op_label:d.op_label,content:d.content,old_value:d.old_value,new_value:d.new_value}]; return arr.map(function(x){ var extra=""; if(d.result==="passed"&&(x.old_value!=null||x.new_value!=null)){ extra=" <span style=\"color:#8a1f1f\">改前:"+esc(String(x.old_value||"(空)").slice(0,40))+"</span> → <span style=\"color:#155e2e\">改后:"+esc(String(x.new_value||"(空)").slice(0,40))+"</span>"; } return "<div class=\"chg\"><div class=\"h\">"+esc(x.field||"")+"<span class=\"tag "+(x.op||"")+"\">"+esc(x.op_label||x.op||"")+"</span></div>"+esc(x.content||"(删除整行)")+extra+"</div>"; }).join(""); }
+function doQuery(){ var id=$("reqId").value.trim(); $("qresult").innerHTML=""; if(!id){ flash($("qmsg"),"请输入申请编号",false); return; } flash($("qmsg"),"查询中…",true);
+  post({auth_key:AUTH_KEY,action:"query",id:id}).then(function(res){ if(res.code!==0){ flash($("qmsg"),res.msg||"未找到该申请编号",false); return; } $("qmsg").style.display="none"; var d=res.data||{}; var si=qStatus(res.status); var h="";
+    h+="<div class=\"rec\"><div class=\"head\"><span style=\"font-weight:600\">"+esc(d.id||id)+"</span><span class=\"badge2 "+si.cls+"\">"+si.label+"</span></div>";
+    h+="<div class=\"row\"><b>提交人</b>"+esc(d.applicant||"-")+"</div>";
+    h+="<div class=\"row\"><b>章节</b>"+esc(d.chapter_title||d.module||"-")+"</div>";
+    if(d.reviewer){ h+="<div class=\"row\"><b>审核人</b>"+esc(d.reviewer)+"</div>"; }
+    if(d.review_time){ h+="<div class=\"row\"><b>审核时间</b>"+esc(d.review_time)+"</div>"; }
+    h+="<div class=\"row\"><b>修改内容</b></div>"+qItems(d);
+    if((res.status==="rejected"||d.result==="rejected")&&d.reason){ h+="<div class=\"row\" style=\"color:#e5484d\">驳回理由："+esc(d.reason)+"</div>"; }
+    if(res.status==="pending"){ h+="<div class=\"row\" style=\"color:#d97706\">该申请正在等待审核，请稍后再查。</div>"; }
+    h+="</div>"; $("qresult").innerHTML=h;
+  }).catch(function(e){ flash($("qmsg"),"网络错误："+e,false); }); }
+$("qbtn").onclick=doQuery; $("reqId").addEventListener("keydown",function(e){ if(e.key==="Enter") doQuery(); });
+</script>
+</body>
+</html>
